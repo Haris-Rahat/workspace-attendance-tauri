@@ -1,52 +1,63 @@
 import { useAuthContext } from "../../services/hooks/useAuthContext";
 import {
-  formState,
-  generalSettings,
-  loading,
-  user,
-} from "../../services/signals/signals";
+  FormState,
+  GeneralSettingsState,
+  LoadingState,
+  UserState,
+} from "../../services/state/globalState";
 import { useNavigate } from "react-router-dom";
+import { useHookstate } from "@hookstate/core";
+import { useRender } from "../../services/hooks/useRender";
 
 const Login: React.FC = () => {
   const { login, checkDomain } = useAuthContext();
   const navigate = useNavigate();
+  const formState = useHookstate(FormState);
+  const userState = useHookstate(UserState);
+  const generalSettingsState = useHookstate(GeneralSettingsState);
+  const loadingState = useHookstate(LoadingState);
+
+  useRender("Login");
 
   const handleClick = async () => {
-    loading.value = true;
+    loadingState.set(true);
     try {
-      const res = await checkDomain(formState.value.domain);
+      const res = await checkDomain(formState.get().domain);
       if (res) {
         const res: {
           login: Record<string, any> | undefined;
-          generalSettings: Record<"timezone", {name: string}> | undefined;
-        } = await login(formState.value);
+          generalSettings: Record<"timezone", { name: string }> | undefined;
+        } = await login(formState.get());
         if (!!res.login && !!res.generalSettings) {
-          user.value = {
+          userState.set({
             id: res.login?.id,
             email: res.login?.email,
             name: `${res.login?.user.firstName} ${res.login?.user.lastName}`,
             token: res.login?.token,
-            domain: formState.value.domain,
-          };
-          generalSettings.value = { ...res.generalSettings };
-          localStorage.setItem("user", JSON.stringify(user.value));
+            domain: formState.get().domain,
+          });
+          generalSettingsState.set({ ...res.generalSettings });
+          localStorage.setItem(
+            "user",
+            JSON.stringify(userState.get({ noproxy: true }))
+          );
           localStorage.setItem(
             "generalSettings",
-            JSON.stringify(generalSettings.value)
+            JSON.stringify(generalSettingsState.get({ noproxy: true }))
           );
-          loading.value = false;
+          loadingState.set(false);
           navigate("/attendance");
           return;
         }
       } else {
         alert("Domain does not exist!");
       }
-      loading.value = false;
+      loadingState.set(false);
     } catch (e) {
       console.error(e, "error login");
       alert(`Something went wrong! ${e.message}`);
     } finally {
-      loading.value = false;
+      loadingState.set(false);
     }
   };
 
@@ -58,13 +69,7 @@ const Login: React.FC = () => {
           <div className={"flex justify-between items-center mt-4"}>
             <label className={"text-gray-500"}>Domain:</label>
             <input
-              defaultValue={formState.value.domain}
-              onInput={(event) =>
-                (formState.value = {
-                  ...formState.value,
-                  domain: (event.target as HTMLInputElement).value,
-                })
-              }
+              onChange={(event) => formState.domain.set(event.target.value)}
               type="text"
               placeholder={"example"}
             />
@@ -72,13 +77,7 @@ const Login: React.FC = () => {
           <div className={"flex justify-between items-center mt-4"}>
             <label className={"text-gray-500"}>Email:</label>
             <input
-              defaultValue={formState.value.email}
-              onInput={(event) =>
-                (formState.value = {
-                  ...formState.value,
-                  email: (event.target as HTMLInputElement).value,
-                })
-              }
+              onChange={(event) => formState.email.set(event.target.value)}
               type="email"
               placeholder={"embrace@technologies.dk"}
             />
@@ -86,13 +85,7 @@ const Login: React.FC = () => {
           <div className={"flex justify-between items-center mt-4"}>
             <label className={"text-gray-500"}>Password:</label>
             <input
-              defaultValue={formState.value.password}
-              onInput={(event) =>
-                (formState.value = {
-                  ...formState.value,
-                  password: (event.target as HTMLInputElement).value,
-                })
-              }
+              onChange={(event) => formState.password.set(event.target.value)}
               type="password"
               placeholder={"**********"}
               className={"ml-6"}
