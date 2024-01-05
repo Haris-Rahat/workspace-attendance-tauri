@@ -1,3 +1,4 @@
+import React, { PropsWithChildren } from "react";
 import {
   ApolloClient,
   InMemoryCache,
@@ -8,21 +9,18 @@ import {
   ApolloLink,
   DefaultContext,
   concat,
+  NormalizedCacheObject,
 } from "@apollo/client";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { createClient } from "graphql-ws";
 import { onError } from "@apollo/client/link/error";
-import { ComponentChildren, FunctionComponent } from "preact";
-import { user } from "../services/signals/signals";
+import { IUser } from "../@types/types";
 
-type Props = {
-  children: ComponentChildren;
-};
+const user: IUser = JSON.parse(localStorage.getItem("user") as string);
 
-// const user: User = JSON.parse(localStorage.getItem("user") as string);
-
-const ApolloContextProvider: FunctionComponent<Props> = ({ children }) => {
+export let client: ApolloClient<NormalizedCacheObject>;
+const ApolloContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
   // get the authentication token from local storage if it exists
 
   // const [uri, setUri] = useState("");
@@ -37,12 +35,13 @@ const ApolloContextProvider: FunctionComponent<Props> = ({ children }) => {
   // }, []);
   const uri = "https://apis.work-space.me/graphql";
 
+  const token = user?.token;
+
   const authLink = new ApolloLink((operation, forward) => {
     operation.setContext((ctx: DefaultContext) => ({
       headers: {
-        authorization: user.value.token ? `Bearer ${user.value.token}` : "", // however you get your token
+        authorization: token ? `Bearer ${token}` : "", // however you get your token
         ...ctx.headers,
-        database: user.value.domain ? user.value.domain : "",
       },
     }));
     return forward(operation);
@@ -61,10 +60,7 @@ const ApolloContextProvider: FunctionComponent<Props> = ({ children }) => {
         url: uri.replace(/^http/g, "ws"),
         connectionParams: async () => {
           return {
-            authorization: user.value.token
-              ? `Bearer ${user.value.token}`
-              : null,
-            database: user.value.domain ? user.value.domain : "",
+            authorization: token ? `Bearer ${token}` : null,
           };
         },
       })
@@ -80,7 +76,7 @@ const ApolloContextProvider: FunctionComponent<Props> = ({ children }) => {
     forward(operation);
   });
 
-  const client = new ApolloClient({
+  client = new ApolloClient({
     cache: new InMemoryCache(),
     link: from([errorLink, concat(authLink, link)]),
   });

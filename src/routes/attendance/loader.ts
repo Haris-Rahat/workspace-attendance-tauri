@@ -1,9 +1,10 @@
 import { redirect } from "react-router-dom";
-import { User } from "../../context/authContext";
+import { IUser } from "../../@types/types";
+import _keyBy from "lodash/keyBy";
 
-export const loader = () => {
-  const user: User = JSON.parse(localStorage.getItem("user") as string);
-  if (user?.id) {
+export const loader = async () => {
+  const user: IUser = JSON.parse(localStorage.getItem("user") as string);
+  if (!!user) {
     return user;
   }
   return redirect("/");

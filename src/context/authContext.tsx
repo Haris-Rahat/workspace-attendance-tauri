@@ -1,28 +1,24 @@
+import React, { PropsWithChildren, createContext, useEffect } from "react";
 import { useLazyQuery } from "@apollo/client";
-import { Signal, signal } from "@preact/signals";
-import { ComponentChildren, FunctionComponent, createContext } from "preact";
+import { Signal } from "@preact/signals-react";
 import {
   CHECK_SUBDOMAIN_EXISTANCE,
   LOGIN_USER,
 } from "../services/queries/login";
-import { user } from "../services/signals/signals";
-import { useEffect } from "preact/hooks";
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  token: string;
-  domain: string;
-}
+import { generalSettings, user } from "../services/signals/signals";
+import { GET_GENERAL_SETTINGS } from "../services/queries/generalSettings";
+import { IUser } from "../@types/types";
 
 export interface AuthContextType {
-  user: Signal<User> | null;
+  user: Signal<IUser> | null;
   login: (data: {
     email: string;
     password: string;
     domain: string;
-  }) => Promise<Record<string, any>>;
+  }) => Promise<{
+    login: Record<string, any> | undefined;
+    generalSettings: Record<string, any> | undefined;
+  }>;
   logout: () => boolean;
   checkDomain: (domain: string) => Promise<boolean>;
 }
@@ -33,7 +29,10 @@ export const AuthContext = createContext<AuthContextType>({
     email: string;
     password: string;
     domain: string;
-  }): Promise<Record<string, any>> {
+  }): Promise<{
+    login: Record<string, any> | undefined;
+    generalSettings: Record<string, any> | undefined;
+  }> {
     throw new Error("Function not implemented.");
   },
   logout: function (): boolean {
@@ -44,14 +43,13 @@ export const AuthContext = createContext<AuthContextType>({
   },
 });
 
-type Props = {
-  children: ComponentChildren;
-};
 
-export const AuthProvider: FunctionComponent<Props> = ({ children }) => {
+export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [loginQuery] = useLazyQuery(LOGIN_USER);
 
   const [checkDomainQuery] = useLazyQuery(CHECK_SUBDOMAIN_EXISTANCE);
+
+  const [getGeneralSettings] = useLazyQuery(GET_GENERAL_SETTINGS);
 
   const login = async (data: {
     email: string;
@@ -70,7 +68,19 @@ export const AuthProvider: FunctionComponent<Props> = ({ children }) => {
           },
         },
       });
-      if (res.data) return res.data?.login;
+      const _res = await getGeneralSettings({
+        fetchPolicy: "cache-first",
+        context: {
+          headers: {
+            database: data?.domain,
+            authorization: `Bearer ${res.data?.login?.token}`,
+          },
+        },
+      });
+      return {
+        login: res.data?.login ?? undefined,
+        generalSettings: _res.data?.generalSettings ?? undefined,
+      };
     } catch (e: any) {
       throw new Error(e?.message);
     }
@@ -99,9 +109,13 @@ export const AuthProvider: FunctionComponent<Props> = ({ children }) => {
   };
 
   const isLoggedIn = () => {
-    const _user: User = JSON.parse(localStorage.getItem("user") as string);
-    if (_user?.id) {
+    const _user: IUser = JSON.parse(localStorage.getItem("user") as string);
+    const _generalSettings = JSON.parse(
+      localStorage.getItem("generalSettings") as string
+    );
+    if (!!_user && !!_generalSettings) {
       user.value = _user;
+      generalSettings.value = _generalSettings;
       return true;
     }
     return false;
@@ -117,6 +131,7 @@ export const AuthProvider: FunctionComponent<Props> = ({ children }) => {
     };
     // localStorage.removeItem("domain");
     localStorage.removeItem("user");
+    localStorage.removeItem("generalSettings");
     return true;
   };
 
