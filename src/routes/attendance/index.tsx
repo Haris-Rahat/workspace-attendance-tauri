@@ -1,17 +1,21 @@
-import { useLoaderData, useNavigate } from "react-router-dom";
+import { useLoaderData, useNavigate, useNavigation } from "react-router-dom";
 import { useAuthContext } from "../../services/hooks/useAuthContext";
-import UserCard from "./components/userCard";
-import { IUser } from "../../@types/types";
-import { useQuery } from "@apollo/client";
-import { GET_USER_LIST } from "../../services/queries/people";
+import { IEmployee, IEmployeeList } from "../../@types/types";
+import EmployeeCard from "./components/employeeCard";
+import { useHookstate } from "@hookstate/core";
+import { EmployeeListState } from "../../services/state/globalState";
+import { useEffect } from "react";
 
 const Attendance: React.FC = () => {
-  const loaderData = useLoaderData() as Record<
-    "id" | "email" | "name" | "token" | "domain",
-    IUser
-  >;
+  const loaderData = useLoaderData() as IEmployeeList;
+  const navigation = useNavigation();
+  const employeeListState = useHookstate(EmployeeListState);
   const { logout } = useAuthContext();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    employeeListState.set(loaderData);
+  }, [loaderData]);
 
   const handleLogout = () => {
     const res = logout();
@@ -19,21 +23,11 @@ const Attendance: React.FC = () => {
       navigate("/");
     }
   };
+  console.log(employeeListState.get({ noproxy: true }));
 
-  const { data, error, loading } = useQuery(GET_USER_LIST, {
-    fetchPolicy: "network-only",
-    variables: {
-      status: "Active",
-    },
-    context: {
-      headers: {
-        database: loaderData.domain,
-      },
-    },
-  });
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (navigation.state === "loading") {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className={"h-screen overflow-y-scroll"}>
@@ -41,9 +35,9 @@ const Attendance: React.FC = () => {
         <button onClick={handleLogout}>Logout</button>
       </div>
       <div className={"flex flex-row flex-wrap justify-center"}>
-        {Object.values(loaderData).map(
-          (userData: Record<string, any>, index: number) => (
-            <UserCard userData={userData} key={index} />
+        {Object.values(employeeListState.get({ noproxy: true })).map(
+          (employeeData: IEmployee, index: number) => (
+            <EmployeeCard employeeData={employeeData} key={index} />
           )
         )}
       </div>

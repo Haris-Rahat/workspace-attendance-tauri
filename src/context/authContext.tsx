@@ -1,16 +1,16 @@
 import React, { PropsWithChildren, createContext, useEffect } from "react";
 import { useLazyQuery } from "@apollo/client";
-import { Signal } from "@preact/signals-react";
 import {
   CHECK_SUBDOMAIN_EXISTANCE,
   LOGIN_USER,
 } from "../services/queries/login";
-import { generalSettings, user } from "../services/signals/signals";
+import { State, useHookstate } from "@hookstate/core";
+import { GeneralSettingsState, UserState } from "../services/state/globalState";
 import { GET_GENERAL_SETTINGS } from "../services/queries/generalSettings";
 import { IUser } from "../@types/types";
 
 export interface AuthContextType {
-  user: Signal<IUser> | null;
+  userState: State<IUser> | null;
   login: (data: {
     email: string;
     password: string;
@@ -24,7 +24,7 @@ export interface AuthContextType {
 }
 
 export const AuthContext = createContext<AuthContextType>({
-  user: null,
+  userState: null,
   login: async function (data: {
     email: string;
     password: string;
@@ -43,8 +43,9 @@ export const AuthContext = createContext<AuthContextType>({
   },
 });
 
-
 export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
+  const userState = useHookstate(UserState);
+  const generalSettingsState = useHookstate(GeneralSettingsState);
   const [loginQuery] = useLazyQuery(LOGIN_USER);
 
   const [checkDomainQuery] = useLazyQuery(CHECK_SUBDOMAIN_EXISTANCE);
@@ -99,7 +100,6 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
           console.warn(data, "data");
         },
       });
-      console.log(res);
       if (res.data) return res.data?.exists;
     } catch (e: any) {
       console.log(e);
@@ -109,26 +109,26 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   };
 
   const isLoggedIn = () => {
-    const _user: IUser = JSON.parse(localStorage.getItem("user") as string);
-    const _generalSettings = JSON.parse(
+    const user: IUser = JSON.parse(localStorage.getItem("user") as string);
+    const generalSettings = JSON.parse(
       localStorage.getItem("generalSettings") as string
     );
-    if (!!_user && !!_generalSettings) {
-      user.value = _user;
-      generalSettings.value = _generalSettings;
+    if (!!user && !!generalSettings) {
+      userState.set(user);
+      generalSettingsState.set(generalSettings);
       return true;
     }
     return false;
   };
 
   const logout = () => {
-    user.value = {
+    userState.set({
       id: "",
       email: "",
       name: "",
       token: "",
       domain: "",
-    };
+    });
     // localStorage.removeItem("domain");
     localStorage.removeItem("user");
     localStorage.removeItem("generalSettings");
@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, checkDomain }}>
+    <AuthContext.Provider value={{ userState, login, logout, checkDomain }}>
       {children}
     </AuthContext.Provider>
   );

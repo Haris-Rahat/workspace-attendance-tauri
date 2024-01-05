@@ -4,15 +4,21 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { CREATE_USER_TIME } from "../../../services/mutations/userTime";
 import { CLOCK_IN_OUT } from "../../../services/mutations/clockInOut";
 import {
-  generalSettings,
-  projectAndTaskId,
-  user,
-} from "../../../services/signals/signals";
+  GeneralSettingsState,
+  ProjectAndTaskIdState,
+  UserState,
+} from "../../../services/state/globalState";
 import { formatInTimeZone } from "date-fns-tz";
+import { useHookstate } from "@hookstate/core";
+import { IEmployee } from "../../../@types/types";
 
-const UserCard: React.FC<{ userData: Record<string, any> }> = ({
-  userData,
+const EmployeeCard: React.FC<{ employeeData: IEmployee }> = ({
+  employeeData,
 }) => {
+  const userState = useHookstate(UserState);
+  const { get: getGeneralSettings } = useHookstate(GeneralSettingsState);
+  const { get: projectAndTaskId } = useHookstate(ProjectAndTaskIdState);
+
   const [fileUrl, setFileUrl] = useState("");
 
   // const fetchUrl = async () => {
@@ -32,7 +38,7 @@ const UserCard: React.FC<{ userData: Record<string, any> }> = ({
   const clockInUser = async () => {
     const date = formatInTimeZone(
       new Date(),
-      generalSettings.value?.timezone?.name,
+      getGeneralSettings().timezone.name,
       "yyyy-MM-dd"
     );
     try {
@@ -41,12 +47,12 @@ const UserCard: React.FC<{ userData: Record<string, any> }> = ({
         variables: {
           input: {
             date,
-            userId: userData?.id,
+            userId: employeeData?.id,
           },
         },
         context: {
           headers: {
-            database: user.peek().domain,
+            database: userState.get().domain,
           },
         },
       });
@@ -59,12 +65,11 @@ const UserCard: React.FC<{ userData: Record<string, any> }> = ({
               userId: data?.userTimeCreate?.id,
               isFromHome: false,
               comments: "attendanceApp",
-              projectId: projectAndTaskId.peek().projectId,
-              taskId: projectAndTaskId.peek().taskId,
+              projectId: projectAndTaskId().projectId,
+              taskId: projectAndTaskId().taskId,
             },
           },
         });
-
       }
     } catch (e) {
       alert("Could not clockIn user!");
@@ -89,9 +94,9 @@ const UserCard: React.FC<{ userData: Record<string, any> }> = ({
         />
         <p
           className={"text-center text-lg mt-6"}
-        >{`${userData?.firstName} ${userData?.lastName}`}</p>
+        >{`${employeeData?.firstName} ${employeeData?.lastName}`}</p>
         <p className={"text-center"}>{`${
-          userData?.jobTitle?.jobTitle ?? "Not Assigned"
+          employeeData?.jobTitle?.jobTitle ?? "Not Assigned"
         }`}</p>
       </div>
       <div className={"flex-row mx-auto items-stretch w-full mt-8"}>
@@ -104,4 +109,4 @@ const UserCard: React.FC<{ userData: Record<string, any> }> = ({
   );
 };
 
-export default UserCard;
+export default EmployeeCard;
