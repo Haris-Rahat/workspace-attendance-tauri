@@ -1,9 +1,9 @@
 import { redirect } from "react-router-dom";
-import { User } from "../../context/authContext";
+import { IUser } from "../../@types/types";
 
 export const loader = () => {
-  const user: User = JSON.parse(localStorage.getItem("user") as string);
-  if (user?.id) {
+  const user: IUser = JSON.parse(localStorage.getItem("user") as string);
+  if (!!user) {
     return redirect("/attendance");
   }
   return null;

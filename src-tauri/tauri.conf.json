@@ -52,7 +52,9 @@
       {
         "decorations": false,
         "url": "splashscreen.html",
-        "label": "splashscreen"
+        "label": "splashscreen",
+        "width": 800,
+        "height": 600
       }
     ]
   }

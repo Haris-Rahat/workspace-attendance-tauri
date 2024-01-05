@@ -1,37 +1,50 @@
 import { useAuthContext } from "../../services/hooks/useAuthContext";
-import { formState, loading, user } from "../../services/signals/signals";
+import {
+  formState,
+  generalSettings,
+  loading,
+  user,
+} from "../../services/signals/signals";
 import { useNavigate } from "react-router-dom";
 
-const Login = () => {
+const Login: React.FC = () => {
   const { login, checkDomain } = useAuthContext();
   const navigate = useNavigate();
 
   const handleClick = async () => {
     loading.value = true;
-    console.log(formState.value, "formState");
     try {
       const res = await checkDomain(formState.value.domain);
       if (res) {
-        const res = await login(formState.value);
-        if (res) {
+        const res: {
+          login: Record<string, any> | undefined;
+          generalSettings: Record<"timezone", {name: string}> | undefined;
+        } = await login(formState.value);
+        if (!!res.login && !!res.generalSettings) {
           user.value = {
-            id: res.id,
-            email: res.email,
-            name: `${res?.user?.firstName} ${res?.user?.lastName}`,
-            token: res.token,
+            id: res.login?.id,
+            email: res.login?.email,
+            name: `${res.login?.user.firstName} ${res.login?.user.lastName}`,
+            token: res.login?.token,
             domain: formState.value.domain,
           };
+          generalSettings.value = { ...res.generalSettings };
           localStorage.setItem("user", JSON.stringify(user.value));
+          localStorage.setItem(
+            "generalSettings",
+            JSON.stringify(generalSettings.value)
+          );
           loading.value = false;
           navigate("/attendance");
           return;
         }
+      } else {
+        alert("Domain does not exist!");
       }
       loading.value = false;
-      alert("Domain does not exist!");
     } catch (e) {
-      console.error(e);
-      alert("Something went wrong!");
+      console.error(e, "error login");
+      alert(`Something went wrong! ${e.message}`);
     } finally {
       loading.value = false;
     }
