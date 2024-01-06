@@ -42,19 +42,16 @@
     },
     "windows": [
       {
-        "fullscreen": false,
+        "fullscreen": true,
         "resizable": true,
         "title": "workspace-attendance-tauri",
-        "width": 800,
-        "height": 600,
         "transparent": false
       },
       {
         "decorations": false,
         "url": "splashscreen.html",
         "label": "splashscreen",
-        "width": 800,
-        "height": 600
+        "fullscreen": true
       }
     ]
   }

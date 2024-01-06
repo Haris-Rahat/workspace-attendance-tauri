@@ -15,6 +15,13 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react",
 
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/components/ui/*": ["./src/components/ui/*"],
+      "@/utils": ["./src/lib/utils.ts"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

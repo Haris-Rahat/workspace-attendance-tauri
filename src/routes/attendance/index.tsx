@@ -43,9 +43,9 @@ const Attendance: React.FC = () => {
     onData({ data: { data, error } }) {
       if (error) console.error(error);
       const {
-        timeEntrySubscription: { timeEntry },
+        timeEntrySubscription: { timeEntry }, action
       } = data;
-      console.log(timeEntry, "timeEntry");
+      console.log(timeEntry, "timeEntry", action);
       if (!timeEntry?.endTime) {
         employeeListState.merge((prev) => ({
           [timeEntry?.userTime?.userId]: {
@@ -64,7 +64,7 @@ const Attendance: React.FC = () => {
     },
   });
 
-  const clockInUser = async (id: string, timeEntryId?: string) => {
+  const clockInEmployee = async (id: string, timeEntryId?: string) => {
     const date = formatInTimeZone(
       new Date(),
       getGeneralSettings().timezone.name,
@@ -133,8 +133,23 @@ const Attendance: React.FC = () => {
 
   return (
     <div className={"h-screen overflow-y-scroll"}>
-      <div className={"flex flex-1 justify-end p-4"}>
-        <Button size={"lg"} onClick={handleLogout}>Logout</Button>
+      <div className={"flex flex-1 justify-between m-12"}>
+        <div className={"flex"}>
+          <p className={"text-2xl ml-10"}>
+            Total Employees: {Object.values(employeeListState.get()).length}
+          </p>
+          <p className={"text-2xl ml-10"}>
+            Employees Clocked In:{" "}
+            {
+              Object.values(employeeListState.get()).filter(
+                (employee: IEmployee) => employee?.timeEntryId !== undefined
+              ).length
+            }
+          </p>
+        </div>
+        <Button size={"lg"} onClick={handleLogout}>
+          Logout
+        </Button>
       </div>
       <div className={"flex flex-row flex-wrap justify-center"}>
         {Object.values(employeeListState.get({ noproxy: true })).map(
@@ -142,7 +157,7 @@ const Attendance: React.FC = () => {
             <EmployeeCard
               employeeData={employeeData}
               key={index}
-              clockInUser={clockInUser}
+              clockInEmployee={clockInEmployee}
             />
           )
         )}
