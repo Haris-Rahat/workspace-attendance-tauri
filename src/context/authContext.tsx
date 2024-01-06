@@ -15,10 +15,7 @@ export interface AuthContextType {
     email: string;
     password: string;
     domain: string;
-  }) => Promise<{
-    login: Record<string, any> | undefined;
-    generalSettings: Record<string, any> | undefined;
-  }>;
+  }) => Promise<boolean>;
   logout: () => boolean;
   checkDomain: (domain: string) => Promise<boolean>;
 }
@@ -29,10 +26,7 @@ export const AuthContext = createContext<AuthContextType>({
     email: string;
     password: string;
     domain: string;
-  }): Promise<{
-    login: Record<string, any> | undefined;
-    generalSettings: Record<string, any> | undefined;
-  }> {
+  }): Promise<boolean> {
     throw new Error("Function not implemented.");
   },
   logout: function (): boolean {
@@ -52,36 +46,52 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
   const [getGeneralSettings] = useLazyQuery(GET_GENERAL_SETTINGS);
 
-  const login = async (data: {
+  const login = async (formData: {
     email: string;
     password: string;
     domain: string;
   }) => {
     try {
-      const res = await loginQuery({
+      const { data } = await loginQuery({
         variables: {
-          email: data?.email,
-          password: data?.password,
+          email: formData?.email,
+          password: formData?.password,
         },
         context: {
           headers: {
-            database: data?.domain,
+            database: formData?.domain,
           },
         },
       });
-      const _res = await getGeneralSettings({
+      const { data: _data } = await getGeneralSettings({
         fetchPolicy: "cache-first",
         context: {
           headers: {
-            database: data?.domain,
-            authorization: `Bearer ${res.data?.login?.token}`,
+            database: formData.domain,
+            authorization: `Bearer ${data?.login?.token}`,
           },
         },
       });
-      return {
-        login: res.data?.login ?? undefined,
-        generalSettings: _res.data?.generalSettings ?? undefined,
-      };
+      if (!!data.login && !!_data.generalSettings) {
+        userState.set({
+          id: data.login?.id,
+          email: data.login?.email,
+          name: `${data.login?.user.firstName} ${data.login?.user.lastName}`,
+          token: data.login?.token,
+          domain: formData.domain,
+        });
+        generalSettingsState.set({ ..._data.generalSettings });
+        localStorage.setItem(
+          "user",
+          JSON.stringify(userState.get({ noproxy: true }))
+        );
+        localStorage.setItem(
+          "generalSettings",
+          JSON.stringify(generalSettingsState.get({ noproxy: true }))
+        );
+        return true;
+      }
+      return false;
     } catch (e: any) {
       throw new Error(e?.message);
     }
@@ -109,6 +119,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   };
 
   const isLoggedIn = () => {
+
     const user: IUser = JSON.parse(localStorage.getItem("user") as string);
     const generalSettings = JSON.parse(
       localStorage.getItem("generalSettings") as string

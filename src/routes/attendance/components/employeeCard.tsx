@@ -1,24 +1,28 @@
 import React, { useState } from "react";
-import { useMutation } from "@apollo/client";
-import { invoke } from "@tauri-apps/api/tauri";
-import { CREATE_USER_TIME } from "../../../services/mutations/userTime";
-import { CLOCK_IN_OUT } from "../../../services/mutations/clockInOut";
-import {
-  GeneralSettingsState,
-  ProjectAndTaskIdState,
-  UserState,
-} from "../../../services/state/globalState";
-import { formatInTimeZone } from "date-fns-tz";
-import { useHookstate } from "@hookstate/core";
 import { IEmployee } from "../../../@types/types";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "../../../components/ui/card";
+import _trim from "lodash/trim";
+import { Button } from "../../../components/ui/button";
+import {
+  ChevronDownIcon,
+  CounterClockwiseClockIcon,
+  CountdownTimerIcon,
+} from "@radix-ui/react-icons";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "../../../components/ui/avatar";
 
-const EmployeeCard: React.FC<{ employeeData: IEmployee }> = ({
-  employeeData,
-}) => {
-  const userState = useHookstate(UserState);
-  const { get: getGeneralSettings } = useHookstate(GeneralSettingsState);
-  const { get: projectAndTaskId } = useHookstate(ProjectAndTaskIdState);
-
+const EmployeeCard: React.FC<{
+  employeeData: IEmployee;
+  clockInUser: (id: string, timeEntryId?: string) => Promise<void>;
+}> = ({ employeeData, clockInUser }) => {
   const [fileUrl, setFileUrl] = useState("");
 
   // const fetchUrl = async () => {
@@ -32,80 +36,59 @@ const EmployeeCard: React.FC<{ employeeData: IEmployee }> = ({
   //   fetchUrl();
   // }, []);
 
-  const [createUserTime] = useMutation(CREATE_USER_TIME);
-  const [clockInOut] = useMutation(CLOCK_IN_OUT);
-
-  const clockInUser = async () => {
-    const date = formatInTimeZone(
-      new Date(),
-      getGeneralSettings().timezone.name,
-      "yyyy-MM-dd"
-    );
-    try {
-      const { data } = await createUserTime({
-        fetchPolicy: "network-only",
-        variables: {
-          input: {
-            date,
-            userId: employeeData?.id,
-          },
-        },
-        context: {
-          headers: {
-            database: userState.get().domain,
-          },
-        },
-      });
-      if (!!data) {
-        console.log(data, "data userTime");
-        const { data: clockInOutData } = await clockInOut({
-          fetchPolicy: "network-only",
-          variables: {
-            input: {
-              userId: data?.userTimeCreate?.id,
-              isFromHome: false,
-              comments: "attendanceApp",
-              projectId: projectAndTaskId().projectId,
-              taskId: projectAndTaskId().taskId,
-            },
-          },
-        });
-      }
-    } catch (e) {
-      alert("Could not clockIn user!");
-      console.error(e);
-    }
-  };
-
   return (
-    <div
-      className={
-        "w-1/5 bg-gray-800 m-4 rounded-lg p-4 flex flex-col justify-between"
-      }
-    >
-      <div>
-        <img
-          src={
-            "./tauri.svg"
-            // `${fileUrl}${user.avatar}`
-          }
-          alt="avatar"
-          className={"w-40 h-40 rounded-full mx-auto object-center"}
-        />
-        <p
-          className={"text-center text-lg mt-6"}
-        >{`${employeeData?.firstName} ${employeeData?.lastName}`}</p>
-        <p className={"text-center"}>{`${
+    <Card className={"w-1/5 m-4 bg-slate-900"}>
+      <CardHeader>
+        <Avatar className="w-40 h-40 self-center">
+          <AvatarImage
+            width={40}
+            height={40}
+            src={`${fileUrl}${employeeData.avatar}`}
+            alt="avatar"
+          />
+          <AvatarFallback className="text-5xl">{`${employeeData?.firstName[0]} ${employeeData?.lastName[0]}`}</AvatarFallback>
+        </Avatar>
+      </CardHeader>
+      <CardContent>
+        <p className={"text-center text-2xl mt-6"}>{`${_trim(
+          employeeData?.firstName
+        )} ${_trim(employeeData?.lastName)}`}</p>
+        <p className={"text-center text-lg"}>{`${
           employeeData?.jobTitle?.jobTitle ?? "Not Assigned"
         }`}</p>
-      </div>
-      <div className={"flex-row mx-auto items-stretch w-full mt-8"}>
-        <button className={"text-white rounded w-[80%]"} onClick={clockInUser}>
-          ClockIn
-        </button>
-        <button className={""}> V </button>
-      </div>
-    </div>
+      </CardContent>
+      <CardFooter>
+        <div
+          className={"flex flex-row justify-center items-center mt-8 w-full"}
+        >
+          <Button
+            className={"flex-grow h-12 rounded-l-lg rounded-r-none text-center"}
+            onClick={() =>
+              clockInUser(employeeData.id, employeeData?.timeEntryId)
+            }
+          >
+            {!employeeData?.timeEntryId ? (
+              <p className="flex">
+                {" "}
+                <p className={"animate-spin"}>
+                  <CounterClockwiseClockIcon
+                    className={"h-6 w-6 [transform:rotateX(180deg)]"}
+                  />
+                </p>
+                ClockOut
+              </p>
+            ) : (
+              <p>ClockIn</p>
+            )}
+          </Button>
+          {!employeeData?.timeEntryId && (
+            <Button className={"h-12 rounded-r-lg rounded-l-none"}>
+              <ChevronDownIcon className={"h-6 w-6"} />
+            </Button>
+          )}
+        </div>
+      </CardFooter>
+    </Card>
   );
 };
 

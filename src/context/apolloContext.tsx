@@ -12,17 +12,12 @@ import {
   NormalizedCacheObject,
 } from "@apollo/client";
 import { getMainDefinition } from "@apollo/client/utilities";
-import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
-import { createClient } from "graphql-ws";
+import { WebSocketLink } from "@apollo/client/link/ws";
 import { onError } from "@apollo/client/link/error";
 import { IUser } from "../@types/types";
 
-const user: IUser = JSON.parse(localStorage.getItem("user") as string);
-
 export let client: ApolloClient<NormalizedCacheObject>;
 const ApolloContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
-  // get the authentication token from local storage if it exists
-
   // const [uri, setUri] = useState("");
 
   // const fetchUri = async () => {
@@ -35,12 +30,13 @@ const ApolloContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
   // }, []);
   const uri = "https://apis.work-space.me/graphql";
 
-  const token = user?.token;
-
   const authLink = new ApolloLink((operation, forward) => {
+    const user: IUser | null = JSON.parse(
+      localStorage.getItem("user") as string
+    );
     operation.setContext((ctx: DefaultContext) => ({
       headers: {
-        authorization: token ? `Bearer ${token}` : "", // however you get your token
+        authorization: user ? `Bearer ${user?.token}` : "",
         ...ctx.headers,
       },
     }));
@@ -55,16 +51,25 @@ const ApolloContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
         definition.operation === "subscription"
       );
     },
-    new GraphQLWsLink(
-      createClient({
-        url: uri.replace(/^http/g, "ws"),
-        connectionParams: async () => {
+    new WebSocketLink({
+      uri: uri.replace(/^http/g, "ws"),
+      options: {
+        // lazy: true,
+        reconnect: true,
+        connectionCallback(error, result) {
+          console.log("connectionCallback", error, result);
+        },
+        connectionParams: () => {
+          const user: IUser | null = JSON.parse(
+            localStorage.getItem("user") as string
+          );
           return {
-            authorization: token ? `Bearer ${token}` : null,
+            database: user?.domain ?? "",
+            authorization: user ? `Bearer ${user?.token}` : "",
           };
         },
-      })
-    ),
+      },
+    }),
     authLink.concat(new HttpLink({ uri }))
   );
 
