@@ -1,12 +1,17 @@
 import { redirect } from "react-router-dom";
-import { IUser } from "../../@types/types";
+import { IEmployee, IUser } from "../../@types/types";
 import _keyBy from "lodash/keyBy";
 import { client } from "../../context/apolloContext";
 import { GET_USER_LIST } from "../../services/queries/people";
+import { UserState } from "../../services/state/globalState";
 
 export const loader = async () => {
-  const user: IUser = JSON.parse(localStorage.getItem("user") as string);
-  if (!!user) {
+  const userState = UserState;
+  userState.set((prev) => ({
+    ...prev,
+    ...JSON.parse(localStorage.getItem("user") as string),
+  }));
+  if (userState.id.get()) {
     const { data, error } = await client.query({
       query: GET_USER_LIST,
       fetchPolicy: "network-only",
@@ -15,11 +20,15 @@ export const loader = async () => {
       },
       context: {
         headers: {
-          database: user?.domain,
+          database: userState.domain.get(),
         },
       },
     });
-    return _keyBy(data?.userList ?? [], "id");
+
+    const _list = data?.userList?.map((item: IEmployee) => {
+      return { ...item, timeEntryId: undefined };
+    });
+    return _keyBy(_list ?? {}, "id");
   }
   return redirect("/");
 };

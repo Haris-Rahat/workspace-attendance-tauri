@@ -35,6 +35,7 @@ export interface IEmployee {
     __typename: string;
   };
   __typename: string;
+  timeEntryId?: string;
 }
 
 export interface IEmployeeList {
