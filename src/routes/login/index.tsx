@@ -40,7 +40,6 @@ const Login: React.FC = () => {
         if (res) {
           loadingState.set(false);
           navigate("/attendance");
-          return;
         }
       } else {
         alert("Domain does not exist!");

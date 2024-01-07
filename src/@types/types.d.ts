@@ -41,3 +41,16 @@ export interface IEmployee {
 export interface IEmployeeList {
   [key: string]: IEmployee;
 }
+
+export interface IProject {
+  id: string;
+  name: string;
+  tasks: Array<ITask>;
+}
+
+export type IProjectList = Array<IProject>;
+
+export interface ITask {
+  id: string;
+  task: string;
+}

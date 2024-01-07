@@ -17,6 +17,7 @@ import { CLOCK_IN_OUT } from "../../services/mutations/clockInOut";
 import { useSubscription } from "@apollo/client/react/hooks/useSubscription";
 import { TIME_ENTRY_SUB } from "../../services/subscriptions/timeEntry";
 import { Button } from "../../components/ui/button";
+import { debounce } from "lodash";
 
 const Attendance: React.FC = () => {
   const loaderData = useLoaderData() as IEmployeeList;
@@ -43,9 +44,9 @@ const Attendance: React.FC = () => {
     onData({ data: { data, error } }) {
       if (error) console.error(error);
       const {
-        timeEntrySubscription: { timeEntry },
+        timeEntrySubscription: { timeEntry }, action
       } = data;
-      console.log(timeEntry, "timeEntry");
+      console.log(timeEntry, "timeEntry", action);
       if (!timeEntry?.endTime) {
         employeeListState.merge((prev) => ({
           [timeEntry?.userTime?.userId]: {
@@ -64,7 +65,7 @@ const Attendance: React.FC = () => {
     },
   });
 
-  const clockInUser = async (id: string, timeEntryId?: string) => {
+  const clockInEmployee = async (id: string, timeEntryId?: string) => {
     const date = formatInTimeZone(
       new Date(),
       getGeneralSettings().timezone.name,
@@ -94,12 +95,12 @@ const Attendance: React.FC = () => {
             input: timeEntryId
               ? {
                   id: timeEntryId,
-                  comments: "attendanceApp",
+                  comments: "attendanceAppClockIn",
                 }
               : {
                   userTimeId: data?.userTimeCreate?.id,
                   isFromHome: false,
-                  comments: "attendanceApp",
+                  comments: "attendanceAppClockIn",
                   projectId: projectAndTaskId().projectId,
                   taskId: projectAndTaskId().taskId,
                 },
@@ -126,6 +127,8 @@ const Attendance: React.FC = () => {
     }
   };
 
+  const debouncedClickHandler = debounce(clockInEmployee, 1500, {maxWait: 2000})
+
   if (navigation.state === "loading") {
     console.log("loading");
     return <div className={"text-primary text-xl"}>Loading...</div>;
@@ -133,16 +136,32 @@ const Attendance: React.FC = () => {
 
   return (
     <div className={"h-screen overflow-y-scroll"}>
-      <div className={"flex flex-1 justify-end p-4"}>
-        <Button size={"lg"} onClick={handleLogout}>Logout</Button>
+      <p className={"text-center text-5xl my-14"}>Workspace Attendance App</p>
+      <div className={"flex flex-1 justify-between m-10"}>
+        <div className={"flex"}>
+          <p className={"text-2xl"}>
+            Total Employees: {Object.values(employeeListState.get()).length}
+          </p>
+          <p className={"text-2xl ml-10"}>
+            Employees Clocked In:{" "}
+            {
+              Object.values(employeeListState.get()).filter(
+                (employee: IEmployee) => employee?.timeEntryId !== undefined
+              ).length
+            }
+          </p>
+        </div>
+        <Button size={"lg"} onClick={handleLogout}>
+          Logout
+        </Button>
       </div>
-      <div className={"flex flex-row flex-wrap justify-center"}>
+      <div className={"grid grid-cols-4 gap-10 px-10 my-14"}>
         {Object.values(employeeListState.get({ noproxy: true })).map(
           (employeeData: IEmployee, index: number) => (
             <EmployeeCard
               employeeData={employeeData}
               key={index}
-              clockInUser={clockInUser}
+              clockInEmployee={debouncedClickHandler}
             />
           )
         )}

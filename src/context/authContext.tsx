@@ -1,5 +1,5 @@
 import React, { PropsWithChildren, createContext, useEffect } from "react";
-import { useLazyQuery } from "@apollo/client";
+import { useLazyQuery, useMutation } from "@apollo/client";
 import {
   CHECK_SUBDOMAIN_EXISTANCE,
   LOGIN_USER,
@@ -8,6 +8,7 @@ import { State, useHookstate } from "@hookstate/core";
 import { GeneralSettingsState, UserState } from "../services/state/globalState";
 import { GET_GENERAL_SETTINGS } from "../services/queries/generalSettings";
 import { IUser } from "../@types/types";
+import { REFRESH_TOKEN } from "../services/mutations/refreshToken";
 
 export interface AuthContextType {
   userState: State<IUser> | null;
@@ -45,6 +46,37 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [checkDomainQuery] = useLazyQuery(CHECK_SUBDOMAIN_EXISTANCE);
 
   const [getGeneralSettings] = useLazyQuery(GET_GENERAL_SETTINGS);
+
+  const [refreshToken] = useMutation(REFRESH_TOKEN);
+
+  useEffect(() => {
+    const refetchToken = () => {
+      refreshToken({
+        fetchPolicy: "no-cache",
+        variables: {
+          token: UserState.token.get(),
+        },
+        context: {
+          headers: { database: userState.domain.get() || "" },
+        },
+      })
+        .then(({ data }) => {
+          userState.token.set(data?.refreshToken);
+          localStorage.setItem("user", JSON.stringify(userState.get()));
+          return data?.refreshToken;
+        })
+        .catch((_error) => {
+          console.error(_error);
+        });
+    };
+
+    const ONE_HOUR = 10000 * 60 * 60;
+    setInterval(() => {
+      if (userState.id.get()) {
+        refetchToken();
+      }
+    }, ONE_HOUR);
+  }, [refreshToken]);
 
   const login = async (formData: {
     email: string;
@@ -119,7 +151,6 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   };
 
   const isLoggedIn = () => {
-
     const user: IUser = JSON.parse(localStorage.getItem("user") as string);
     const generalSettings = JSON.parse(
       localStorage.getItem("generalSettings") as string
