@@ -7,6 +7,7 @@ export const TIME_ENTRY_SUB = gql`
       timeEntry {
         id
         endTime
+        isFromHome
         userTime {
           userId
         }

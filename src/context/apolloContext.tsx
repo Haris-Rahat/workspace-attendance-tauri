@@ -43,15 +43,8 @@ const ApolloContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
     return forward(operation);
   });
 
-  const link = split(
-    ({ query }) => {
-      const definition = getMainDefinition(query);
-      return (
-        definition.kind === "OperationDefinition" &&
-        definition.operation === "subscription"
-      );
-    },
-    new WebSocketLink({
+  const createWebSocketLink = () => {
+    return new WebSocketLink({
       uri: uri.replace(/^http/g, "ws"),
       options: {
         // lazy: true,
@@ -69,17 +62,46 @@ const ApolloContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
           };
         },
       },
-    }),
+    });
+  };
+
+  let wsLink = createWebSocketLink();
+
+  const link = split(
+    ({ query }) => {
+      const definition = getMainDefinition(query);
+      return (
+        definition.kind === "OperationDefinition" &&
+        definition.operation === "subscription"
+      );
+    },
+    wsLink,
     authLink.concat(new HttpLink({ uri }))
   );
 
   const errorLink = onError(({ graphQLErrors, operation, forward }) => {
     if (graphQLErrors) {
-      // Handle Errors
+      graphQLErrors.forEach((error: any) => {
+        if (
+          error.message === "jwt expired" ||
+          error.message === "invalid signature"
+        ) {
+          localStorage.clear();
+          window.location.href = "/";
+        }
+      });
     }
 
     forward(operation);
   });
+
+  const halfHour = 60000 * 30;
+
+  const reconnectWebSocket = () => {
+    wsLink = createWebSocketLink();
+  };
+
+  setInterval(() => reconnectWebSocket(), halfHour);
 
   client = new ApolloClient({
     cache: new InMemoryCache(),

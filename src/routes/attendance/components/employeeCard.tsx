@@ -21,10 +21,13 @@ import { Separator } from "../../../components/ui/separator";
 import { cn } from "../../../lib/utils";
 import ProjectsAndTasks from "./projectsAndTasks";
 import { AlertDialog } from "../../../components/ui/alert-dialog";
+import { DebouncedFunc } from "lodash";
 
 const EmployeeCard: React.FC<{
   employeeData: IEmployee;
-  clockInEmployee: (id: string, timeEntryId?: string) => Promise<void>;
+  clockInEmployee: DebouncedFunc<
+    (id: string, timeEntryId?: string) => Promise<void>
+  >;
 }> = ({ employeeData, clockInEmployee }) => {
   const [fileUrl, setFileUrl] = useState("");
   const [toggleProjects, setToggleProjects] = useState(false);
@@ -42,7 +45,7 @@ const EmployeeCard: React.FC<{
 
   return (
     <Fragment>
-      <Card className={"w-1/5 m-4 bg-slate-900 relative"}>
+      <Card className={"bg-slate-900 relative"}>
         <CardHeader>
           <Avatar className="w-40 h-40 self-center">
             <AvatarImage
