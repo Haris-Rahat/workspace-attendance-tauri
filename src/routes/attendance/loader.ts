@@ -1,34 +1,36 @@
 import { redirect } from "react-router-dom";
-import { IEmployee, IUser } from "../../@types/types";
 import _keyBy from "lodash/keyBy";
 import { client } from "../../context/apolloContext";
 import { GET_USER_LIST } from "../../services/queries/people";
-import { UserState } from "../../services/state/globalState";
+import formatInTimeZone from "date-fns-tz/formatInTimeZone";
+import _sortBy from "lodash/sortBy";
 
 export const loader = async () => {
-  const userState = UserState;
-  userState.set((prev) => ({
-    ...prev,
-    ...JSON.parse(localStorage.getItem("user") as string),
-  }));
-  if (userState.id.get()) {
+  const user = JSON.parse(localStorage.getItem("user") as string);
+  const generalSettings = JSON.parse(
+    localStorage.getItem("generalSettings") as string
+  );
+
+  if (!!user && !!generalSettings) {
+    const date = formatInTimeZone(
+      new Date(),
+      generalSettings?.timezone?.name,
+      "yyyy-MM-dd"
+    );
     const { data, error } = await client.query({
       query: GET_USER_LIST,
       fetchPolicy: "network-only",
       variables: {
-        status: "Active",
+        date,
       },
       context: {
         headers: {
-          database: userState.domain.get(),
+          database: user?.domain,
         },
       },
     });
-
-    const _list = data?.userList?.map((item: IEmployee) => {
-      return { ...item, timeEntryId: undefined };
-    });
-    return _keyBy(_list ?? {}, "id");
+    const sortedUsers = _sortBy(data?.activeUsers ?? [], "firstName");
+    return _keyBy(sortedUsers ?? {}, "id");
   }
   return redirect("/");
 };

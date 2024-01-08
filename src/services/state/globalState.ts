@@ -1,8 +1,6 @@
 import { hookstate } from "@hookstate/core";
 import {
-  IEmployee,
   IEmployeeList,
-  IFormState,
   IGeneralSettings,
   IProjectAndTaskId,
   IUser,
@@ -23,11 +21,6 @@ export const GeneralSettingsState = hookstate<IGeneralSettings>({
   },
 });
 
-export const FormState = hookstate<IFormState>({
-  domain: "",
-  email: "",
-  password: "",
-});
 
 export const LoadingState = hookstate<Loading>(false);
 

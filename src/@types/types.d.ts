@@ -30,12 +30,9 @@ export interface IEmployee {
   firstName: string;
   lastName: string;
   avatar: string;
-  jobTitle: {
-    jobTitle: string;
-    __typename: string;
-  };
-  __typename: string;
-  timeEntryId?: string;
+  lastCheckInId: string | null;
+  isCheckedIn: boolean;
+  isWorkingFromHome: boolean;
 }
 
 export interface IEmployeeList {

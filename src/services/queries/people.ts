@@ -1,15 +1,15 @@
 import {gql} from '@apollo/client';
 
 export const GET_USER_LIST = gql`
-  query userList($status: userStatus) {
-    userList(status: $status) {
+  query activeUsers($date: String!) {
+    activeUsers {
       id
       firstName
       lastName
       avatar
-      jobTitle {
-        jobTitle
-      }
+      lastCheckInId(date: $date)
+      isCheckedIn(date: $date)
+      isWorkingFromHome(date: $date)
     }
   }
 `;
