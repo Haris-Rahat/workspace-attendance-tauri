@@ -54,7 +54,7 @@ const ProjectsAndTasks: React.FC<{
               <Button
                 onClick={() => {
                   if (project.tasks.length > 0) {
-                    setProjectId((prev) => project.id);
+                    setProjectId((_) => project.id);
                     setToggleTasks((prev) => !prev);
                     return;
                   }

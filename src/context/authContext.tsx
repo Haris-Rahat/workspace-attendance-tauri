@@ -23,18 +23,14 @@ export interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType>({
   userState: null,
-  login: async function (data: {
-    email: string;
-    password: string;
-    domain: string;
-  }): Promise<void> {
-    throw new Error("Function not implemented.");
+  login: () => {
+    throw new Error("login function must be implemented");
   },
-  logout: function (): boolean {
-    throw new Error("Function not implemented.");
+  logout: () => {
+    throw new Error("logout function must be implemented");
   },
-  checkDomain: function async(domain: string): Promise<boolean> {
-    throw new Error("Function not implemented.");
+  checkDomain: () => {
+    throw new Error("checkDomain function must be implemented");
   },
 });
 
@@ -113,7 +109,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
         token: data.login?.token,
         domain: formData.domain,
       });
-      const {__typename, ...rest} = _data.generalSettings
+      const { __typename, ...rest } = _data.generalSettings;
       generalSettingsState.set({ ...rest });
       localStorage.setItem(
         "user",

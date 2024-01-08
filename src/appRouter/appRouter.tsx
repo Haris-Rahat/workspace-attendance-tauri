@@ -5,6 +5,7 @@ import { ErrorBoundary as LoginErrorBoundary } from "../routes/login/errorBounda
 import Attendance from "../routes/attendance";
 import { loader as attendanceLoader } from "../routes/attendance/loader";
 import { ErrorBoundary as AttendanceErrorBoundary } from "../routes/attendance/errorBoundary";
+import Loader from "../components/loader";
 
 const AppRouter: React.FC = () => {
   const router = createBrowserRouter([
@@ -22,7 +23,9 @@ const AppRouter: React.FC = () => {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <RouterProvider fallbackElement={<Loader/>} router={router} />
+  );
 };
 
 export default AppRouter;

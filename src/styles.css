@@ -74,3 +74,70 @@
     @apply bg-background text-foreground;
   }
 }
+
+.StopWatchAnimation {
+  border-radius: 15px;
+  border: 3px solid var(--background);
+  position: relative;
+  left: 5%;
+  margin-top: -1px;
+  display: block;
+  width: 23px;
+  height: 23px;
+}
+
+.StopWatchAnimation::after {
+  content: "";
+  position: absolute;
+  background-color: var(--background);
+  top: 1px;
+  left: 41.5%;
+  height: 8px;
+  width: 2.5px;
+  border-radius: 5px;
+  transform-origin: 59% 95%;
+  animation: grdAiguille 2s linear infinite;
+}
+
+@keyframes grdAiguille {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.StopWatchAnimation::before {
+  content: "";
+  position: absolute;
+  background-color: var(--background);
+  top: 2px;
+  left: 41.5%;
+  height: 7px;
+  width: 2.5px;
+  border-radius: 5px;
+  transform-origin: 60% 90%;
+  animation: ptAiguille 6s linear infinite;
+}
+
+@keyframes ptAiguille {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.Dot {
+  content: "";
+  position: absolute;
+  background-color: var(--background);
+  top: 7px;
+  left: 7px;
+  height: 3px;
+  width: 3px;
+  border-radius: 5px;
+  z-index: 1;
+}

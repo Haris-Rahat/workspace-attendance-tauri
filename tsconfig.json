@@ -1,13 +1,16 @@
 {
   "compilerOptions": {
+    /* Bundler mode */
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["DOM", "DOM.Iterable", "ES2020"],
+    "allowJs": false,
     "skipLibCheck": true,
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -17,9 +20,9 @@
 
     "baseUrl": "./src",
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/ui/*": ["./src/components/ui/*"],
-      "@/utils": ["./src/lib/utils.ts"]
+      "@/components/ui/*": ["/components/ui/*"],
+      "@/utils/*": ["/lib/utils"],
+      "@/services/*": ["/services/*"]
     },
 
     /* Linting */

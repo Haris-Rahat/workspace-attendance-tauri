@@ -20,48 +20,72 @@ import {
 import { cn } from "../../../lib/utils";
 import ProjectsAndTasks from "./projectsAndTasks";
 import { AlertDialog } from "../../../components/ui/alert-dialog";
-import { DebouncedFunc } from "lodash";
 import { invoke } from "@tauri-apps/api/tauri";
+import HomeIcon from "../../../assets/home-house-svgrepo-com.svg?react";
+import OfficeIcon from "../../../assets/office-svgrepo-com.svg?react";
 
 const EmployeeCard: React.FC<{
   employeeData: IEmployee;
-  clockInEmployee: DebouncedFunc<(employee: IEmployee) => Promise<void>>;
+  clockInEmployee: (employee: IEmployee) => Promise<void>;
 }> = ({ employeeData, clockInEmployee }) => {
   const [imgUrl, setImgUrl] = useState("");
   const [toggleProjects, setToggleProjects] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [disabled, setDisabled] = useState(false);
 
   const fetchUrl = async () => {
     const res = await invoke("get_environment_variable", {
       name: "FILE_UPLOAD_DOWNLOAD_URL",
     });
 
-    fetch(`${res}/${employeeData.avatar}/100`, {
-      method: "GET",
+    if (res && employeeData.avatar) {
+      fetch(`${res}/${employeeData.avatar}/100`, {
+        method: "GET",
 
-      headers: {
-        "access-control-allow-origin": "*",
-        "access-control-allow-headers": "*",
-        "content-type": "image/png",
-        database: "technologies",
-        accept: "*/*",
-      },
-    })
-      .then((res) => res.blob())
-      .then((blob) => {
-        setImgUrl(URL.createObjectURL(blob));
-        return blob;
+        headers: {
+          "access-control-allow-origin": "*",
+          "access-control-allow-headers": "*",
+          "content-type": "image/png",
+          database: "technologies",
+          accept: "*/*",
+        },
       })
-      .catch((err) => err);
+        .then((res) => res.blob())
+        .then((blob) => {
+          setImgUrl(URL.createObjectURL(blob));
+          return blob;
+        })
+        .catch((err) => err);
+    }
   };
 
   useEffect(() => {
     fetchUrl();
   }, []);
-  console.log(loading, "loading");
+
+  useEffect(() => {
+    if (disabled) {
+      setTimeout(() => {
+        setDisabled(false);
+      }, 1500);
+    }
+  }, [disabled]);
+
   return (
     <Fragment>
       <Card className={"bg-slate-900 relative"}>
+        {employeeData.isCheckedIn && (
+          <div
+            className={
+              "rounded-full p-4 bg-white absolute top-[-1.5rem] right-4"
+            }
+          >
+            {employeeData.isWorkingFromHome ? (
+              <HomeIcon className={"w-9 h-9"} />
+            ) : (
+              <OfficeIcon className={"w-9 h-9"} />
+            )}
+          </div>
+        )}
         <CardHeader>
           <Avatar className="w-40 h-40 self-center">
             <AvatarImage
@@ -87,20 +111,23 @@ const EmployeeCard: React.FC<{
             className={"flex flex-row justify-center items-center mt-8 w-full"}
           >
             <Button
-              disabled={loading}
+              disabled={disabled}
               className={cn(
-                "flex-grow h-12",
+                "flex-grow h-12 relative",
                 !employeeData?.isCheckedIn && "rounded-l-lg rounded-r-none"
               )}
-              onClick={() => clockInEmployee(employeeData)}
+              onClick={() => {
+                setDisabled(true);
+                clockInEmployee(employeeData);
+              }}
             >
               {" "}
               <CounterClockwiseClockIcon className={"h-6 w-6 mr-2"} />
-              {employeeData.isCheckedIn ? "ClockOut" : "ClockIn"}
+              {employeeData.isCheckedIn ? "ClockOut" : "ClockIn"}{" "}
             </Button>
             {!employeeData.isCheckedIn && (
               <Button
-                disabled={loading}
+                disabled={disabled}
                 onClick={() => setToggleProjects(true)}
                 className={
                   "h-12 rounded-r-lg border-slate-900 border-l rounded-l-none"
@@ -117,7 +144,10 @@ const EmployeeCard: React.FC<{
           <ProjectsAndTasks
             employeeId={employeeData?.id}
             setToggleProjects={setToggleProjects}
-            clockInEmployee={() => clockInEmployee(employeeData)}
+            clockInEmployee={() => {
+              setDisabled(true);
+              clockInEmployee(employeeData);
+            }}
           />
         </AlertDialog>
       )}

@@ -13,6 +13,7 @@ import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { ReloadIcon, EyeOpenIcon, EyeClosedIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
+import { AuthContextType } from "context/authContext";
 
 const Login: React.FC = () => {
   const { login, checkDomain } = useAuthContext();
@@ -41,13 +42,18 @@ const Login: React.FC = () => {
       const res = await checkDomain(formState.domain.get());
       if (res) {
         await login(formState.get());
+        formState.set({
+          domain: "",
+          email: "",
+          password: "",
+        });
         loadingState.set(false);
         navigate("/attendance");
       } else {
         alert("Domain does not exist!");
       }
       loadingState.set(false);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e, "error login");
       alert(`Something went wrong! ${e.message}`);
     } finally {

@@ -2,7 +2,7 @@ import { redirect } from "react-router-dom";
 import _keyBy from "lodash/keyBy";
 import { client } from "../../context/apolloContext";
 import { GET_USER_LIST } from "../../services/queries/people";
-import formatInTimeZone from "date-fns-tz/formatInTimeZone";
+import { formatInTimeZone } from "date-fns-tz";
 import _sortBy from "lodash/sortBy";
 
 export const loader = async () => {
@@ -15,11 +15,12 @@ export const loader = async () => {
     const date = formatInTimeZone(
       new Date(),
       generalSettings?.timezone?.name,
-      "yyyy-MM-dd"
+      "yyyy/MM/dd"
     );
-    const { data, error } = await client.query({
+
+    const { data } = await client.query({
       query: GET_USER_LIST,
-      fetchPolicy: "network-only",
+      fetchPolicy: "no-cache",
       variables: {
         date,
       },

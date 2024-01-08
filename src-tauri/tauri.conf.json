@@ -28,7 +28,7 @@
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "com.tauri.dev",
+      "identifier": "com.workspace.dev",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -42,16 +42,18 @@
     },
     "windows": [
       {
-        "fullscreen": true,
         "resizable": true,
         "title": "workspace-attendance-tauri",
-        "transparent": false
+        "transparent": false,
+        "width": 1920,
+        "height": 1080
       },
       {
         "decorations": false,
         "url": "splashscreen.html",
         "label": "splashscreen",
-        "fullscreen": true
+        "width": 1920,
+        "height": 1080
       }
     ]
   }

@@ -6,7 +6,6 @@ import { useHookstate } from "@hookstate/core";
 import {
   EmployeeListState,
   GeneralSettingsState,
-  LoadingState,
   ProjectAndTaskIdState,
   UserState,
 } from "../../services/state/globalState";
@@ -18,7 +17,8 @@ import { CLOCK_IN_OUT } from "../../services/mutations/clockInOut";
 import { useSubscription } from "@apollo/client/react/hooks/useSubscription";
 import { TIME_ENTRY_SUB } from "../../services/subscriptions/timeEntry";
 import { Button } from "../../components/ui/button";
-import { debounce } from "lodash";
+import _sortBy from "lodash/sortBy";
+import _keyBy from "lodash/keyBy";
 
 const Attendance: React.FC = () => {
   const loaderData = useLoaderData() as IEmployeeList;
@@ -26,7 +26,6 @@ const Attendance: React.FC = () => {
   const userState = useHookstate(UserState);
   const { get: getGeneralSettings } = useHookstate(GeneralSettingsState);
   const { get: projectAndTaskId } = useHookstate(ProjectAndTaskIdState);
-  const loadingState = useHookstate(LoadingState);
   const { logout } = useAuthContext();
   const navigate = useNavigate();
 
@@ -43,13 +42,12 @@ const Attendance: React.FC = () => {
 
   useSubscription(TIME_ENTRY_SUB, {
     onData({ data: { data, error } }) {
-      loadingState.set(true);
       if (error) console.error(error);
       const {
         timeEntrySubscription: { timeEntry },
         action,
       } = data;
-
+      console.log(timeEntry, "timeEntry", action);
       employeeListState.merge((prev) => ({
         [timeEntry?.userTime?.userId]: {
           ...prev[timeEntry?.userTime?.userId],
@@ -58,20 +56,19 @@ const Attendance: React.FC = () => {
           isWorkingFromHome: timeEntry.isFromHome,
         },
       }));
-      loadingState.set(false);
     },
   });
 
   const clockInEmployee = async (employee: IEmployee) => {
-    const date = formatInTimeZone(
-      new Date(),
-      getGeneralSettings().timezone.name,
-      "yyyy-MM-dd"
-    );
     try {
+      const date = formatInTimeZone(
+        new Date(),
+        getGeneralSettings().timezone.name,
+        "yyyy-MM-dd"
+      );
       const { data } = await client.mutate({
         mutation: CREATE_USER_TIME,
-        fetchPolicy: "network-only",
+        fetchPolicy: "no-cache",
         variables: {
           input: {
             date,
@@ -85,11 +82,11 @@ const Attendance: React.FC = () => {
         },
       });
       if (!!data) {
-        const { data: clockInOutData } = await client.mutate({
+        const { data: clockInOutData, errors } = await client.mutate({
           mutation: CLOCK_IN_OUT,
-          fetchPolicy: "network-only",
+          fetchPolicy: "no-cache",
           variables: {
-            input: employee.lastCheckInId
+            input: employee.isCheckedIn
               ? {
                   id: employee.lastCheckInId,
                   comments: "attendanceAppClockIn",
@@ -108,25 +105,25 @@ const Attendance: React.FC = () => {
             },
           },
         });
-
-        employeeListState.merge((prev) => ({
-          [employee.id]: {
-            ...prev[employee.id],
-            lastCheckInId: clockInOutData?.clockInOut?.id,
-            isCheckedIn: clockInOutData?.clockInOu?.endTime ? false : true,
-            isWorkingFromHome: false,
-          },
-        }));
+        if (errors) return alert("Error ocurred while clocking in!");
+        if (!!clockInOutData) {
+          employeeListState.merge((prev) => ({
+            [employee.id]: {
+              ...prev[employee.id],
+              lastCheckInId: clockInOutData?.clockInOut?.endTime
+                ? null
+                : clockInOutData?.clockInOut?.id,
+              isCheckedIn: clockInOutData?.clockInOut?.endTime ? false : true,
+              isWorkingFromHome: false,
+            },
+          }));
+        }
       }
     } catch (e) {
       alert("Error ocurred while clocking in!");
       console.error(e);
     }
   };
-
-  const debouncedClickHandler = debounce(clockInEmployee, 1500, {
-    maxWait: 2000,
-  });
 
   return (
     <div className={"h-screen overflow-y-scroll"}>
@@ -157,7 +154,7 @@ const Attendance: React.FC = () => {
               <EmployeeCard
                 employeeData={employeeData}
                 key={index}
-                clockInEmployee={debouncedClickHandler}
+                clockInEmployee={clockInEmployee}
               />
             )
           )}
