@@ -1,5 +1,5 @@
 import { useAuthContext } from "../../services/hooks/useAuthContext";
-import { FormState, LoadingState } from "../../services/state/globalState";
+import { LoadingState } from "../../services/state/globalState";
 import { useNavigate } from "react-router-dom";
 import { useHookstate } from "@hookstate/core";
 import { useRender } from "../../services/hooks/useRender";
@@ -17,7 +17,11 @@ import { useState } from "react";
 const Login: React.FC = () => {
   const { login, checkDomain } = useAuthContext();
   const navigate = useNavigate();
-  const formState = useHookstate(FormState);
+  const formState = useHookstate({
+    domain: "",
+    email: "",
+    password: "",
+  });
   const loadingState = useHookstate(LoadingState);
   const [togglePassword, setTogglePassword] = useState(false);
 
@@ -34,13 +38,11 @@ const Login: React.FC = () => {
     }
     loadingState.set(true);
     try {
-      const res = await checkDomain(formState.get().domain);
+      const res = await checkDomain(formState.domain.get());
       if (res) {
-        const res: boolean = await login(formState.get());
-        if (res) {
-          loadingState.set(false);
-          navigate("/attendance");
-        }
+        await login(formState.get());
+        loadingState.set(false);
+        navigate("/attendance");
       } else {
         alert("Domain does not exist!");
       }
@@ -55,7 +57,7 @@ const Login: React.FC = () => {
 
   return (
     <div className={"h-screen flex flex-col justify-center items-center"}>
-      <Card className={"w-1/3 bg-slate-900"}>
+      <Card className={"sm:w-2/3 lg:w-1/3 bg-slate-900"}>
         <CardHeader>
           <h1 className={"text-center text-white text-5xl underline"}>
             Workspace

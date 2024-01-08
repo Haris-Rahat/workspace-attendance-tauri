@@ -16,7 +16,7 @@ export interface AuthContextType {
     email: string;
     password: string;
     domain: string;
-  }) => Promise<boolean>;
+  }) => Promise<void>;
   logout: () => boolean;
   checkDomain: (domain: string) => Promise<boolean>;
 }
@@ -27,7 +27,7 @@ export const AuthContext = createContext<AuthContextType>({
     email: string;
     password: string;
     domain: string;
-  }): Promise<boolean> {
+  }): Promise<void> {
     throw new Error("Function not implemented.");
   },
   logout: function (): boolean {
@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
     domain: string;
   }) => {
     try {
-      const { data } = await loginQuery({
+      const { data, error } = await loginQuery({
         variables: {
           email: formData?.email,
           password: formData?.password,
@@ -95,7 +95,8 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
           },
         },
       });
-      const { data: _data } = await getGeneralSettings({
+      if (error) throw new Error(error.message);
+      const { data: _data, error: _error } = await getGeneralSettings({
         fetchPolicy: "cache-first",
         context: {
           headers: {
@@ -104,26 +105,24 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
           },
         },
       });
-      if (!!data.login && !!_data.generalSettings) {
-        userState.set({
-          id: data.login?.id,
-          email: data.login?.email,
-          name: `${data.login?.user.firstName} ${data.login?.user.lastName}`,
-          token: data.login?.token,
-          domain: formData.domain,
-        });
-        generalSettingsState.set({ ..._data.generalSettings });
-        localStorage.setItem(
-          "user",
-          JSON.stringify(userState.get({ noproxy: true }))
-        );
-        localStorage.setItem(
-          "generalSettings",
-          JSON.stringify(generalSettingsState.get({ noproxy: true }))
-        );
-        return true;
-      }
-      return false;
+      if (_error) throw new Error(_error.message);
+      userState.set({
+        id: data.login?.id,
+        email: data.login?.email,
+        name: `${data.login?.user.firstName} ${data.login?.user.lastName}`,
+        token: data.login?.token,
+        domain: formData.domain,
+      });
+      const {__typename, ...rest} = _data.generalSettings
+      generalSettingsState.set({ ...rest });
+      localStorage.setItem(
+        "user",
+        JSON.stringify(userState.get({ noproxy: true }))
+      );
+      localStorage.setItem(
+        "generalSettings",
+        JSON.stringify(generalSettingsState.get({ noproxy: true }))
+      );
     } catch (e: any) {
       throw new Error(e?.message);
     }
@@ -156,6 +155,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
       localStorage.getItem("generalSettings") as string
     );
     if (!!user && !!generalSettings) {
+      console.log("user", user, generalSettings);
       userState.set(user);
       generalSettingsState.set(generalSettings);
       return true;
@@ -171,7 +171,11 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
       token: "",
       domain: "",
     });
-    // localStorage.removeItem("domain");
+    generalSettingsState.set({
+      timezone: {
+        name: "Europe/Copenhagen",
+      },
+    });
     localStorage.removeItem("user");
     localStorage.removeItem("generalSettings");
     return true;
