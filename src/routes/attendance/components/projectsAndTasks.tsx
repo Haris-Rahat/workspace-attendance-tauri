@@ -1,19 +1,19 @@
 import { Dispatch, SetStateAction, useState } from "react";
-import { AlertDialogContent } from "../../../components/ui/alert-dialog";
+import { AlertDialogContent } from "@/components/ui/alert-dialog";
 import {
   Cross1Icon,
   ChevronRightIcon,
   ChevronLeftIcon,
 } from "@radix-ui/react-icons";
-import { Button } from "../../../components/ui/button";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@apollo/client";
-import { GET_PROJECTS_AND_TASKS_QUERY } from "../../../services/queries/projectsAndTasks";
+import { GET_PROJECTS_AND_TASKS_QUERY } from "@/services/queries/projectsAndTasks";
 import { useHookstate } from "@hookstate/core";
 import {
   ProjectAndTaskIdState,
   UserState,
-} from "../../../services/state/globalState";
-import { IProject, IProjectList, ITask } from "../../../@types/types";
+} from "@/services/state/globalState";
+import { IProject, IProjectList, ITask } from "@/types";
 import { cn } from "../../../lib/utils";
 
 const ProjectsAndTasks: React.FC<{

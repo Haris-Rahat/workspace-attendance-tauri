@@ -1,6 +1,6 @@
 import { useLoaderData, useNavigate } from "react-router-dom";
-import { useAuthContext } from "../../services/hooks/useAuthContext";
-import { IEmployee, IEmployeeList } from "../../@types/types";
+import { useAuthContext } from "@/services/hooks/useAuthContext";
+import { IEmployee, IEmployeeList } from "@/types";
 import EmployeeCard from "./components/employeeCard";
 import { useHookstate } from "@hookstate/core";
 import {
@@ -8,15 +8,15 @@ import {
   GeneralSettingsState,
   ProjectAndTaskIdState,
   UserState,
-} from "../../services/state/globalState";
+} from "@/services/state/globalState";
 import { useEffect } from "react";
-import { client } from "../../context/apolloContext";
-import { CREATE_USER_TIME } from "../../services/mutations/userTime";
+import { client } from "@/context/apolloContext";
+import { CREATE_USER_TIME } from "@/services/mutations/userTime";
 import { formatInTimeZone } from "date-fns-tz";
-import { CLOCK_IN_OUT } from "../../services/mutations/clockInOut";
+import { CLOCK_IN_OUT } from "@/services/mutations/clockInOut";
 import { useSubscription } from "@apollo/client/react/hooks/useSubscription";
-import { TIME_ENTRY_SUB } from "../../services/subscriptions/timeEntry";
-import { Button } from "../../components/ui/button";
+import { TIME_ENTRY_SUB } from "@/services/subscriptions/timeEntry";
+import { Button } from "@/components/ui/button";
 import _sortBy from "lodash/sortBy";
 import _keyBy from "lodash/keyBy";
 

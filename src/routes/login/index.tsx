@@ -1,16 +1,16 @@
-import { useAuthContext } from "../../services/hooks/useAuthContext";
-import { LoadingState } from "../../services/state/globalState";
+import { useAuthContext } from "@/services/hooks/useAuthContext";
+import { LoadingState } from "@/services/state/globalState";
 import { useNavigate } from "react-router-dom";
 import { useHookstate } from "@hookstate/core";
-import { useRender } from "../../services/hooks/useRender";
+import { useRender } from "@/services/hooks/useRender";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
-} from "../../components/ui/card";
-import { Input } from "../../components/ui/input";
-import { Button } from "../../components/ui/button";
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ReloadIcon, EyeOpenIcon, EyeClosedIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 

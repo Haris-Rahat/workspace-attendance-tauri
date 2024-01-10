@@ -1,7 +1,7 @@
 import { redirect } from "react-router-dom";
 import _keyBy from "lodash/keyBy";
-import { client } from "../../context/apolloContext";
-import { GET_USER_LIST } from "../../services/queries/people";
+import { client } from "@/context/apolloContext";
+import { GET_USER_LIST } from "@/services/queries/people";
 import { formatInTimeZone } from "date-fns-tz";
 import _sortBy from "lodash/sortBy";
 

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["/src/*"],
+      "@/types": ["src/@types/types.d.ts"],
+      "@/appRouter": ["src/appRouter/appRouter.tsx"],
+      "@/assets/*": ["src/assets/*"],
+      "@/components/*": ["src/components/*"],
+      "@/components/ui/*": ["src/components/ui/*"],
+      "@/context/*": ["src/context/*"],
+      "@/routes/*": ["src/routes/*"],
+      "@/services/*": ["src/services/*"]
+    }
+  }
+}

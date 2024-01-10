@@ -1,13 +1,13 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { IEmployee } from "../../../@types/types";
+import { IEmployee } from "@/types";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
-} from "../../../components/ui/card";
+} from "@/components/ui/card";
 import _trim from "lodash/trim";
-import { Button } from "../../../components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   ChevronDownIcon,
   CounterClockwiseClockIcon,
@@ -16,13 +16,13 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "../../../components/ui/avatar";
-import { cn } from "../../../lib/utils";
+} from "@/components/ui/avatar";
+import { cn } from  "./../../../lib/utils";
 import ProjectsAndTasks from "./projectsAndTasks";
-import { AlertDialog } from "../../../components/ui/alert-dialog";
+import { AlertDialog } from "@/components/ui/alert-dialog";
 import { invoke } from "@tauri-apps/api/tauri";
-import HomeIcon from "../../../assets/home-house-svgrepo-com.svg?react";
-import OfficeIcon from "../../../assets/office-svgrepo-com.svg?react";
+import HomeIcon from "@/assets/home-house-svgrepo-com.svg?react";
+import OfficeIcon from "@/assets/office-svgrepo-com.svg?react";
 
 const EmployeeCard: React.FC<{
   employeeData: IEmployee;
@@ -40,7 +40,6 @@ const EmployeeCard: React.FC<{
     if (res && employeeData.avatar) {
       fetch(`${res}/${employeeData.avatar}/100`, {
         method: "GET",
-
         headers: {
           "access-control-allow-origin": "*",
           "access-control-allow-headers": "*",
