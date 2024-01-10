@@ -13,7 +13,6 @@ import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { ReloadIcon, EyeOpenIcon, EyeClosedIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
-import { AuthContextType } from "context/authContext";
 
 const Login: React.FC = () => {
   const { login, checkDomain } = useAuthContext();

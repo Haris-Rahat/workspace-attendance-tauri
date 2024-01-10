@@ -25,7 +25,7 @@ const Attendance: React.FC = () => {
   const employeeListState = useHookstate(EmployeeListState);
   const userState = useHookstate(UserState);
   const { get: getGeneralSettings } = useHookstate(GeneralSettingsState);
-  const { get: projectAndTaskId } = useHookstate(ProjectAndTaskIdState);
+  const projectAndTaskIdState = useHookstate(ProjectAndTaskIdState);
   const { logout } = useAuthContext();
   const navigate = useNavigate();
 
@@ -95,8 +95,8 @@ const Attendance: React.FC = () => {
                   userTimeId: data?.userTimeCreate?.id,
                   isFromHome: false,
                   comments: "attendanceAppClockIn",
-                  projectId: projectAndTaskId().projectId,
-                  taskId: projectAndTaskId().taskId,
+                  projectId: projectAndTaskIdState.projectId.get(),
+                  taskId: projectAndTaskIdState.taskId.get(),
                 },
           },
           context: {
@@ -117,6 +117,10 @@ const Attendance: React.FC = () => {
               isWorkingFromHome: false,
             },
           }));
+          projectAndTaskIdState.set({
+            projectId: undefined,
+            taskId: undefined,
+          });
         }
       }
     } catch (e) {
