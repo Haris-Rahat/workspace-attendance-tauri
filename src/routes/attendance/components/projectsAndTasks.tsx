@@ -9,10 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@apollo/client";
 import { GET_PROJECTS_AND_TASKS_QUERY } from "@/services/queries/projectsAndTasks";
 import { useHookstate } from "@hookstate/core";
-import {
-  ProjectAndTaskIdState,
-  UserState,
-} from "@/services/state/globalState";
+import { ProjectAndTaskIdState, UserState } from "@/services/state/globalState";
 import { IProject, IProjectList, ITask } from "@/types";
 import { cn } from "../../../lib/utils";
 
@@ -48,65 +45,67 @@ const ProjectsAndTasks: React.FC<{
         <p className={"text-lg mb-6"}>
           Your {!toggleTasks ? "Projects" : "Tasks"}
         </p>
-        {data?.projectsByUser.length ? (
-          !toggleTasks ? (
-            data?.projectsByUser.map((project: IProject, index: number) => (
-              <Button
-                onClick={() => {
-                  if (project.tasks.length > 0) {
-                    setProjectId((_) => project.id);
-                    setToggleTasks((prev) => !prev);
-                    return;
-                  }
-                  projectAndTaskIdState.set((prev) => ({
-                    ...prev,
-                    projectId: project.id,
-                  }));
-                  clockInEmployee();
-                  setToggleProjects(false);
-                  return;
-                }}
-                className={"w-full cursor-pointer h-16 my-2"}
-                asChild={true}
-                variant={"outline"}
-                key={index}
-              >
-                <div className={"flex flex-row justify-between items-center"}>
-                  <p className={"text-xl"}>{project?.name}</p>
-                  {project?.tasks.length > 0 && (
-                    <ChevronRightIcon className={"w-6 h-6"} />
-                  )}
-                </div>
-              </Button>
-            ))
-          ) : (
-            data?.projectsByUser
-              .filter((project: IProject) => project?.id === projectId)[0]
-              .tasks.map((task: ITask, index: number) => (
+        <div className={"h-full overflow-y-auto max-h-96"}>
+          {data?.projectsByUser.length ? (
+            !toggleTasks ? (
+              data?.projectsByUser.map((project: IProject, index: number) => (
                 <Button
                   onClick={() => {
+                    if (project.tasks.length > 0) {
+                      setProjectId((_) => project.id);
+                      setToggleTasks((prev) => !prev);
+                      return;
+                    }
                     projectAndTaskIdState.set((prev) => ({
                       ...prev,
-                      projectId: projectId,
-                      taskId: task.id,
+                      projectId: project.id,
                     }));
                     clockInEmployee();
                     setToggleProjects(false);
                     return;
                   }}
-                  className={
-                    "w-full cursor-pointer h-16 my-2 justify-start text-xl"
-                  }
+                  className={"w-full cursor-pointer h-16 my-2"}
+                  asChild={true}
                   variant={"outline"}
                   key={index}
                 >
-                  {task?.task}
+                  <div className={"flex flex-row justify-between items-center"}>
+                    <p className={"text-xl"}>{project?.name}</p>
+                    {project?.tasks.length > 0 && (
+                      <ChevronRightIcon className={"w-6 h-6"} />
+                    )}
+                  </div>
                 </Button>
               ))
-          )
-        ) : (
-          <p>You don't have any projects</p>
-        )}
+            ) : (
+              data?.projectsByUser
+                .filter((project: IProject) => project?.id === projectId)[0]
+                .tasks.map((task: ITask, index: number) => (
+                  <Button
+                    onClick={() => {
+                      projectAndTaskIdState.set((prev) => ({
+                        ...prev,
+                        projectId: projectId,
+                        taskId: task.id,
+                      }));
+                      clockInEmployee();
+                      setToggleProjects(false);
+                      return;
+                    }}
+                    className={
+                      "w-full cursor-pointer h-16 my-2 justify-start text-xl"
+                    }
+                    variant={"outline"}
+                    key={index}
+                  >
+                    {task?.task}
+                  </Button>
+                ))
+            )
+          ) : (
+            <p>You don't have any projects</p>
+          )}
+        </div>
       </div>
     );
   };

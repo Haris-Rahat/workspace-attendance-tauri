@@ -152,7 +152,7 @@ const Attendance: React.FC = () => {
         </Button>
       </div>
       {Object.keys(employeeListState.get({ noproxy: true }) ?? {}).length ? (
-        <div className={"grid grid-cols-2 xl:grid-cols-4 gap-10 px-10 my-14"}>
+        <div className={"flex flex-row flex-wrap justify-center"}>
           {Object.values(employeeListState.get({ noproxy: true })).map(
             (employeeData: IEmployee, index: number) => (
               <EmployeeCard

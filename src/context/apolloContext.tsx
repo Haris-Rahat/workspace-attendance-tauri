@@ -18,17 +18,7 @@ import { IUser } from "../@types/types";
 
 export let client: ApolloClient<NormalizedCacheObject>;
 const ApolloContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
-  // const [uri, setUri] = useState("");
-
-  // const fetchUri = async () => {
-  //   const res = await invoke("get_environment_variable", { name: "URI" });
-  //   setUri(res as string);
-  // };
-
-  // useEffect(() => {
-  //   fetchUri();
-  // }, []);
-  const uri = "https://apis.work-space.me/graphql";
+  const uri = "https://secure.work-space.app/graphql";
 
   const authLink = new ApolloLink((operation, forward) => {
     const user: IUser | null = JSON.parse(

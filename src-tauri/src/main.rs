@@ -2,11 +2,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use tauri::{Manager, Window};
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-fn get_environment_variable(name: &str) -> String {
-    std::env::var(name).unwrap_or_else(|_| "".to_string())
-}
 
 #[tauri::command]
 async fn close_splashscreen(window: Window) {
@@ -27,7 +22,6 @@ async fn close_splashscreen(window: Window) {
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
-            get_environment_variable,
             close_splashscreen
         ])
         .run(tauri::generate_context!())

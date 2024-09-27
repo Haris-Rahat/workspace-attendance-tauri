@@ -20,7 +20,6 @@ import {
 import { cn } from  "./../../../lib/utils";
 import ProjectsAndTasks from "./projectsAndTasks";
 import { AlertDialog } from "@/components/ui/alert-dialog";
-import { invoke } from "@tauri-apps/api/tauri";
 import HomeIcon from "@/assets/home-house-svgrepo-com.svg?react";
 import OfficeIcon from "@/assets/office-svgrepo-com.svg?react";
 
@@ -33,12 +32,9 @@ const EmployeeCard: React.FC<{
   const [disabled, setDisabled] = useState(false);
 
   const fetchUrl = async () => {
-    const res = await invoke("get_environment_variable", {
-      name: "FILE_UPLOAD_DOWNLOAD_URL",
-    });
 
-    if (res && employeeData.avatar) {
-      fetch(`${res}/${employeeData.avatar}/100`, {
+    if (employeeData.avatar) {
+      fetch(`https://krrpu3p8v4.execute-api.eu-central-1.amazonaws.com/dev/${employeeData.avatar}/100`, {
         method: "GET",
         headers: {
           "access-control-allow-origin": "*",
@@ -71,7 +67,7 @@ const EmployeeCard: React.FC<{
 
   return (
     <Fragment>
-      <Card className={"bg-slate-900 relative"}>
+      <Card className={"bg-slate-900 relative w-1/5 m-6"}>
         {employeeData.isCheckedIn && (
           <div
             className={
