@@ -9,7 +9,7 @@ import {
   ProjectAndTaskIdState,
   UserState,
 } from "@/services/state/globalState";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { client } from "@/context/apolloContext";
 import { CREATE_USER_TIME } from "@/services/mutations/userTime";
 import { formatInTimeZone } from "date-fns-tz";
@@ -19,6 +19,7 @@ import { TIME_ENTRY_SUB } from "@/services/subscriptions/timeEntry";
 import { Button } from "@/components/ui/button";
 import _sortBy from "lodash/sortBy";
 import _keyBy from "lodash/keyBy";
+import { Input } from "@/components/ui/input";
 
 const Attendance: React.FC = () => {
   const loaderData = useLoaderData() as IEmployeeList;
@@ -27,7 +28,17 @@ const Attendance: React.FC = () => {
   const { get: getGeneralSettings } = useHookstate(GeneralSettingsState);
   const projectAndTaskIdState = useHookstate(ProjectAndTaskIdState);
   const { logout } = useAuthContext();
+  const [filter, setFilter] = useState("");
   const navigate = useNavigate();
+  const employees: Array<IEmployee> = useMemo(
+    () =>
+      Object.values(employeeListState.get()).filter(
+        (emp) =>
+          emp.firstName.toLowerCase().indexOf(filter) >= 0 ||
+          emp.lastName.toLowerCase().indexOf(filter) >= 0
+      ),
+    [employeeListState, filter]
+  );
 
   useEffect(() => {
     employeeListState.set(loaderData);
@@ -47,7 +58,6 @@ const Attendance: React.FC = () => {
         timeEntrySubscription: { timeEntry },
         action,
       } = data;
-      console.log(timeEntry, "timeEntry", action);
       employeeListState.merge((prev) => ({
         [timeEntry?.userTime?.userId]: {
           ...prev[timeEntry?.userTime?.userId],
@@ -131,37 +141,46 @@ const Attendance: React.FC = () => {
 
   return (
     <div className={"h-screen overflow-y-scroll"}>
-      <p className={"text-center text-5xl my-14"}>Workspace Attendance App</p>
-      <div className={"flex flex-1 justify-between m-10"}>
+      <div>
+        <p className={"text-center text-5xl my-20"}>Workspace Attendance App</p>
+      </div>
+      <div className={"absolute right-10 top-24"}>
+        <Button size={"lg"} onClick={handleLogout}>
+          Logout
+        </Button>
+      </div>
+      <div className={"flex flex-1 justify-between m-10 items-center"}>
         <div className={"flex"}>
           <p className={"text-2xl"}>
-            Total Employees:{" "}
-            {Object.values(employeeListState.get() ?? {}).length}
+            Total Employees: {Object.values(employeeListState.get()).length}
           </p>
           <p className={"text-2xl ml-10"}>
             Employees Clocked In:{" "}
             {
-              Object.values(employeeListState.get() ?? {}).filter(
+              Object.values(employeeListState.get()).filter(
                 (employee: IEmployee) => employee.isCheckedIn
               ).length
             }
           </p>
         </div>
-        <Button size={"lg"} onClick={handleLogout}>
-          Logout
-        </Button>
+        <div>
+          <Input
+            className={"mt-4 h-14 bg-slate-800 text-xl"}
+            onChange={(event) => setFilter(event.target.value.toLowerCase())}
+            type="text"
+            placeholder={"Search"}
+          />
+        </div>
       </div>
-      {Object.keys(employeeListState.get({ noproxy: true }) ?? {}).length ? (
+      {employees.length ? (
         <div className={"flex flex-row flex-wrap justify-center"}>
-          {Object.values(employeeListState.get({ noproxy: true })).map(
-            (employeeData: IEmployee, index: number) => (
-              <EmployeeCard
-                employeeData={employeeData}
-                key={index}
-                clockInEmployee={clockInEmployee}
-              />
-            )
-          )}
+          {employees.map((employeeData: IEmployee) => (
+            <EmployeeCard
+              employeeData={employeeData}
+              key={employeeData.id}
+              clockInEmployee={clockInEmployee}
+            />
+          ))}
         </div>
       ) : (
         <p className={"mt-14 text-4xl text-center"}>No Employees to display</p>

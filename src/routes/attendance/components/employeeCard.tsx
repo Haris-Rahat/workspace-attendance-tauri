@@ -12,12 +12,8 @@ import {
   ChevronDownIcon,
   CounterClockwiseClockIcon,
 } from "@radix-ui/react-icons";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
-import { cn } from  "./../../../lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "./../../../lib/utils";
 import ProjectsAndTasks from "./projectsAndTasks";
 import { AlertDialog } from "@/components/ui/alert-dialog";
 import HomeIcon from "@/assets/home-house-svgrepo-com.svg?react";
@@ -32,18 +28,20 @@ const EmployeeCard: React.FC<{
   const [disabled, setDisabled] = useState(false);
 
   const fetchUrl = async () => {
-
     if (employeeData.avatar) {
-      fetch(`https://krrpu3p8v4.execute-api.eu-central-1.amazonaws.com/dev/${employeeData.avatar}/100`, {
-        method: "GET",
-        headers: {
-          "access-control-allow-origin": "*",
-          "access-control-allow-headers": "*",
-          "content-type": "image/png",
-          database: "technologies",
-          accept: "*/*",
+      fetch(
+        `https://5yebux2t4h.execute-api.eu-central-1.amazonaws.com/prod/${employeeData.avatar}/100`,
+        {
+          method: "GET",
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-allow-headers": "*",
+            "content-type": "image/png",
+            database: "technologies",
+            accept: "*/*",
+          },
         },
-      })
+      )
         .then((res) => res.blob())
         .then((blob) => {
           setImgUrl(URL.createObjectURL(blob));
@@ -98,7 +96,7 @@ const EmployeeCard: React.FC<{
               "text-center text-2xl mt-6 text-ellipsis overflow-hidden"
             }
           >{`${_trim(employeeData?.firstName)} ${_trim(
-            employeeData?.lastName
+            employeeData?.lastName,
           )}`}</p>
         </CardContent>
         <CardFooter>
@@ -109,7 +107,7 @@ const EmployeeCard: React.FC<{
               disabled={disabled}
               className={cn(
                 "flex-grow h-12 relative",
-                !employeeData?.isCheckedIn && "rounded-l-lg rounded-r-none"
+                !employeeData?.isCheckedIn && "rounded-l-lg rounded-r-none",
               )}
               onClick={() => {
                 setDisabled(true);

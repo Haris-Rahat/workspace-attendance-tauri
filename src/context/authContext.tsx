@@ -113,11 +113,11 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
       generalSettingsState.set({ ...rest });
       localStorage.setItem(
         "user",
-        JSON.stringify(userState.get({ noproxy: true }))
+        JSON.stringify(userState.get({ noproxy: true })),
       );
       localStorage.setItem(
         "generalSettings",
-        JSON.stringify(generalSettingsState.get({ noproxy: true }))
+        JSON.stringify(generalSettingsState.get({ noproxy: true })),
       );
     } catch (e: any) {
       throw new Error(e?.message);
@@ -148,10 +148,9 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const isLoggedIn = () => {
     const user: IUser = JSON.parse(localStorage.getItem("user") as string);
     const generalSettings = JSON.parse(
-      localStorage.getItem("generalSettings") as string
+      localStorage.getItem("generalSettings") as string,
     );
     if (!!user && !!generalSettings) {
-      console.log("user", user, generalSettings);
       userState.set(user);
       generalSettingsState.set(generalSettings);
       return true;
