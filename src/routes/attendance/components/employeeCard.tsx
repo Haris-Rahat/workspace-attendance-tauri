@@ -40,7 +40,7 @@ const EmployeeCard: React.FC<{
             database: "technologies",
             accept: "*/*",
           },
-        },
+        }
       )
         .then((res) => res.blob())
         .then((blob) => {
@@ -102,7 +102,7 @@ const EmployeeCard: React.FC<{
               "text-center text-2xl mt-6 text-ellipsis overflow-hidden"
             }
           >{`${_trim(employeeData?.firstName)} ${_trim(
-            employeeData?.lastName,
+            employeeData?.lastName
           )}`}</p>
         </CardContent>
         <CardFooter>
@@ -113,12 +113,14 @@ const EmployeeCard: React.FC<{
               disabled={disabled}
               className={cn(
                 "flex-grow h-12 relative",
-                !employeeData?.isCheckedIn && "rounded-l-lg rounded-r-none",
+                !employeeData?.isCheckedIn && "rounded-l-lg rounded-r-none"
               )}
               onClick={handleClick}
             >
               {" "}
-              <CounterClockwiseClockIcon className={"h-6 w-6 mr-2"} />
+              <CounterClockwiseClockIcon
+                className={"h-6 w-6 mr-2 text-white"}
+              />
               {employeeData.isCheckedIn ? "ClockOut" : "ClockIn"}{" "}
             </Button>
             {!employeeData.isCheckedIn && (
