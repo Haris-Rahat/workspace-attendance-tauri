@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useCallback, useEffect, useState } from "react";
 import { IEmployee } from "@/types";
 import {
   Card,
@@ -50,6 +50,12 @@ const EmployeeCard: React.FC<{
         .catch((err) => err);
     }
   };
+
+  const handleClick = useCallback(async () => {
+    setDisabled(true);
+    await clockInEmployee(employeeData);
+    setDisabled(false);
+  }, [clockInEmployee]);
 
   useEffect(() => {
     fetchUrl();
@@ -109,10 +115,7 @@ const EmployeeCard: React.FC<{
                 "flex-grow h-12 relative",
                 !employeeData?.isCheckedIn && "rounded-l-lg rounded-r-none",
               )}
-              onClick={() => {
-                setDisabled(true);
-                clockInEmployee(employeeData);
-              }}
+              onClick={handleClick}
             >
               {" "}
               <CounterClockwiseClockIcon className={"h-6 w-6 mr-2"} />
@@ -137,10 +140,7 @@ const EmployeeCard: React.FC<{
           <ProjectsAndTasks
             employeeId={employeeData?.id}
             setToggleProjects={setToggleProjects}
-            clockInEmployee={() => {
-              setDisabled(true);
-              clockInEmployee(employeeData);
-            }}
+            clockInEmployee={handleClick}
           />
         </AlertDialog>
       )}

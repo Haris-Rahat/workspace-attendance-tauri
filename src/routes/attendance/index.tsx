@@ -56,7 +56,6 @@ const Attendance: React.FC = () => {
       if (error) console.error(error);
       const {
         timeEntrySubscription: { timeEntry },
-        action,
       } = data;
       employeeListState.merge((prev) => ({
         [timeEntry?.userTime?.userId]: {
@@ -141,6 +140,7 @@ const Attendance: React.FC = () => {
 
   return (
     <div className={"h-screen overflow-y-scroll"}>
+      <div className="relative flex justify-center items-center">
       <div>
         <p className={"text-center text-5xl my-20"}>Workspace Attendance App</p>
       </div>
@@ -148,6 +148,7 @@ const Attendance: React.FC = () => {
         <Button size={"lg"} onClick={handleLogout}>
           Logout
         </Button>
+      </div>
       </div>
       <div className={"flex flex-1 justify-between m-10 items-center"}>
         <div className={"flex"}>
