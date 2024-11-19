@@ -17,8 +17,6 @@ import { CLOCK_IN_OUT } from "@/services/mutations/clockInOut";
 import { useSubscription } from "@apollo/client/react/hooks/useSubscription";
 import { TIME_ENTRY_SUB } from "@/services/subscriptions/timeEntry";
 import { Button } from "@/components/ui/button";
-import _sortBy from "lodash/sortBy";
-import _keyBy from "lodash/keyBy";
 import { Input } from "@/components/ui/input";
 
 const Attendance: React.FC = () => {
@@ -61,7 +59,7 @@ const Attendance: React.FC = () => {
         [timeEntry?.userTime?.userId]: {
           ...prev[timeEntry?.userTime?.userId],
           lastCheckInId: timeEntry?.id,
-          isCheckedIn: timeEntry?.endTime ? false : true,
+          isCheckedIn: !timeEntry?.endTime,
           isWorkingFromHome: timeEntry.isFromHome,
         },
       }));
@@ -90,7 +88,7 @@ const Attendance: React.FC = () => {
           },
         },
       });
-      if (!!data) {
+      if (data) {
         const { data: clockInOutData, errors } = await client.mutate({
           mutation: CLOCK_IN_OUT,
           fetchPolicy: "no-cache",
@@ -115,14 +113,14 @@ const Attendance: React.FC = () => {
           },
         });
         if (errors) return alert("Error ocurred while clocking in!");
-        if (!!clockInOutData) {
+        if (clockInOutData) {
           employeeListState.merge((prev) => ({
             [employee.id]: {
               ...prev[employee.id],
               lastCheckInId: clockInOutData?.clockInOut?.endTime
                 ? null
                 : clockInOutData?.clockInOut?.id,
-              isCheckedIn: clockInOutData?.clockInOut?.endTime ? false : true,
+              isCheckedIn: !clockInOutData?.clockInOut?.endTime,
               isWorkingFromHome: false,
             },
           }));
