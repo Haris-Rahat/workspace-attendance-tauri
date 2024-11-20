@@ -119,7 +119,7 @@ const EmployeeCard: React.FC<{
             >
               {" "}
               <CounterClockwiseClockIcon
-                className={"h-6 w-6 mr-2 text-white"}
+                className={"h-6 w-6 mr-2"}
               />
               {employeeData.isCheckedIn ? "ClockOut" : "ClockIn"}{" "}
             </Button>
